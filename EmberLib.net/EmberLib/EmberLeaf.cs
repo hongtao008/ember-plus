@@ -1,20 +1,9 @@
 /*
    EmberLib.net -- .NET implementation of the Ember+ Protocol
-   Copyright (C) 2012-2014  L-S-B Broadcast Technologies GmbH
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+   Copyright (C) 2012-2019 Lawo GmbH (http://www.lawo.com).
+   Distributed under the Boost Software License, Version 1.0.
+   (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 */
 
 using System;
@@ -189,6 +178,42 @@ namespace EmberLib
       #endregion
    }
 
+   /// <summary>
+   /// Leaf class representing the NULL value.
+   /// </summary>
+   public sealed class NullEmberLeaf : EmberLeaf<object>
+   {
+      /// <summary>
+      /// Creates a new instance representing null.
+      /// </summary>
+      /// <param name="tag">The tag of the newly created node.</param>
+      public NullEmberLeaf(BerTag tag)
+         : base(tag)
+      {
+         Value = null;
+         BerTypeNumber = BerType.Null;
+      }
+
+      public override TResult Accept<TState, TResult>(IEmberVisitor<TState, TResult> visitor, TState state)
+      {
+         return visitor.Visit(this, state);
+      }
+
+      internal override int Update()
+      {
+         var output = new BerMemoryOutput();
+
+         BerEncoding.EncodeTag(output, Tag.ToContainer());
+         BerEncoding.EncodeLength(output, 2);
+         BerEncoding.EncodeTag(output, new BerTag(BerTypeNumber));
+         BerEncoding.EncodeLength(output, 0);
+
+         Encoded = output.ToArray();
+         EncodedLength = Encoded.Length;
+
+         return EncodedLength;
+      }
+   }
 
    /// <summary>
    /// Leaf class to hold a primitive BOOLEAN value.

@@ -1,7 +1,7 @@
 /*
    libember_slim -- ANSI C implementation of the Ember+ Protocol
 
-    Copyright (C) 2012-2016 Lawo GmbH (http://www.lawo.com).
+    Copyright (C) 2012-2019 Lawo GmbH (http://www.lawo.com).
     Distributed under the Boost Software License, Version 1.0.
     (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 */
@@ -25,7 +25,7 @@
   * The upper byte is the major version number.
   * The lower byte is the minor version number.
   */
-#define EMBER_ENCODING_VERSION (0x0107)
+#define EMBER_ENCODING_VERSION (0x0153)
 
 
 // ====================================================================
@@ -182,5 +182,14 @@ LIBEMBER_API void ember_writeOctetString(BerOutput *pOut, const BerTag *pTag, co
   * @param pValue pointer to the first subidentifier of the RelativeOid.
   */
 LIBEMBER_API void ember_writeRelativeOid(BerOutput *pOut, const BerTag *pTag, const berint *pValue, int count);
+
+/**
+* Writes a TLTLV with a Null value, using the definite
+* length form for both Ls.
+* The inner T is 'UNIVERSAL BerType_Null'.
+* @param pOut pointer to the output to write to.
+* @param pTag pointer to the outer tag of the TLTLV.
+*/
+LIBEMBER_API void ember_writeNull(BerOutput *pOut, const BerTag *pTag);
 
 #endif

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2012-2016 Lawo GmbH (http://www.lawo.com).
+    Copyright (C) 2012-2019 Lawo GmbH (http://www.lawo.com).
     Distributed under the Boost Software License, Version 1.0.
     (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 */
@@ -12,7 +12,7 @@
 #include "glow/Dispatcher.h"
 
 
-#define VERSION_STRING "1.5.1"
+#define VERSION_STRING "1.8.3"
 #define TCP_PORT 9092
 
 // =====================================================
@@ -166,7 +166,7 @@ void createIdentity(model::Node* router, int nodeNumber)
 
    auto author = new model::StringParameter(2, productInfo, "company", nullptr);
    author->setReadOnly(true);
-   author->setValue("L-S-B Broadcast Technologies GmbH");
+   author->setValue("Lawo GmbH");
 
    auto version = new model::StringParameter(3, productInfo, "version", nullptr);
    version->setReadOnly(true);

@@ -22,6 +22,9 @@ namespace libember { namespace glow
      * A class that may store several value types: Integer, Real, Bool, Octets and UTF8String.
      * The value is used by the parameter's value and default property. This class
      * also provides functionality to cast between the different data types.
+     * 
+     * To represent a null-value, simply use the default constructor. The type is then set
+     * to ParameterType::None.
      */
     class Value
     {
@@ -90,6 +93,13 @@ namespace libember { namespace glow
              * @return The type of the current value
              */
             ParameterType type() const;
+
+            /**
+             * Convenience method returning true if the underlying value is of type ber::Null.
+             * In that case, type() returns ParameterType::None.
+             * @return true, if the underlying type is ber::Null and. Otherwise, false.
+             */
+            bool isNull() const;
 
             /**
              * Returns the current value as integer. 
@@ -185,6 +195,9 @@ namespace libember { namespace glow
                 case ber::Type::Boolean:
                     m_value = Variant::create(util::ValueConverter::valueOf(value, false));
                     return;
+                case ber::Type::Null:
+                    m_value = Variant::create<void*>(0);
+                    return;
             }
         }
 
@@ -192,6 +205,11 @@ namespace libember { namespace glow
             m_value = Variant::create(0L);
 
         //EndSimianIgnore
+    }
+
+    inline bool Value::isNull() const
+    {
+        return type().value() == ParameterType::None;
     }
 
     inline ber::Value Value::toBerValue() const
@@ -212,6 +230,9 @@ namespace libember { namespace glow
 
             case ParameterType::Boolean:
                 return ber::Value(toBoolean());
+
+            case ParameterType::None:
+                return ber::Value(ber::Null());
         }
 
         return ber::Value();

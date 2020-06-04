@@ -12,6 +12,20 @@
 
 const __GlowTags glowTags =
 {
+   // template
+   {
+      { BerClass_ContextSpecific, 0 }, // number
+      { BerClass_ContextSpecific, 1 }, // element
+      { BerClass_ContextSpecific, 2 }, // description
+   },
+
+   // qualifiedTemplate
+   {
+      { BerClass_ContextSpecific, 0 }, // path
+      { BerClass_ContextSpecific, 1 }, // element
+      { BerClass_ContextSpecific, 2 }, // description
+   },
+
    // parameter
    {
       {BerClass_ContextSpecific, 0},   // number
@@ -46,6 +60,7 @@ const __GlowTags glowTags =
       {BerClass_ContextSpecific, 15},  // contents.enumMap
       {BerClass_ContextSpecific, 16},  // contents.streamDescriptor
       {BerClass_ContextSpecific, 17},  // contents.schemaIdentifiers
+      {BerClass_ContextSpecific, 18},  // contents.templateReference
    },
 
    // node
@@ -69,6 +84,7 @@ const __GlowTags glowTags =
       {BerClass_ContextSpecific, 2},   // contents.isRoot
       {BerClass_ContextSpecific, 3},   // contents.isOnline
       {BerClass_ContextSpecific, 4},   // contents.schemaIdentifiers
+      {BerClass_ContextSpecific, 5},   // contents.templateReference
    },
 
    // command
@@ -145,6 +161,7 @@ const __GlowTags glowTags =
       {BerClass_ContextSpecific, 9},   // gainParameterNumber
       {BerClass_ContextSpecific, 10},  // labels
       {BerClass_ContextSpecific, 11},  // schemaIdentifiers
+      {BerClass_ContextSpecific, 12},  // templateReference
    },
 
    // label
@@ -192,6 +209,7 @@ const __GlowTags glowTags =
       {BerClass_ContextSpecific, 1},   // description
       {BerClass_ContextSpecific, 2},   // arguments
       {BerClass_ContextSpecific, 3},   // result
+      {BerClass_ContextSpecific, 4},   // templateReference
    },
 
    // tupleItemDescription
@@ -271,6 +289,16 @@ bool glowParametersLocation_isValid(const GlowParametersLocation *pThis)
        || pThis->choice.basePath.length > 0;
 }
 
+void glowTemplate_free(GlowTemplate *pThis)
+{
+    ASSERT(pThis != NULL);
+
+    if (pThis->pDescription != NULL)
+        freeMemory(pThis->pDescription);
+
+    pThis->state = false;
+}
+
 void glowNode_free(GlowNode *pThis)
 {
    ASSERT(pThis != NULL);
@@ -284,7 +312,10 @@ void glowNode_free(GlowNode *pThis)
    if(pThis->pSchemaIdentifiers != NULL)
       freeMemory(pThis->pSchemaIdentifiers);
 
-   bzero(*pThis);
+   if(pThis->pTemplateReference != NULL)
+       freeMemory(pThis->pTemplateReference);
+
+   bzero_item(*pThis);
 }
 
 void glowValue_copyFrom(GlowValue *pThis, const GlowValue *pSource)
@@ -346,7 +377,7 @@ void glowValue_free(GlowValue *pThis)
          freeMemory(pThis->choice.octets.pOctets);
    }
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowParameter_free(GlowParameter *pThis)
@@ -362,10 +393,16 @@ void glowParameter_free(GlowParameter *pThis)
    if(pThis->value.flag != 0)
       glowValue_free(&pThis->value);
 
+   if(pThis->defaultValue.flag != 0)
+       glowValue_free(&pThis->defaultValue);
+
    if(pThis->pSchemaIdentifiers != NULL)
       freeMemory(pThis->pSchemaIdentifiers);
 
-   bzero(*pThis);
+   if(pThis->pTemplateReference != NULL)
+      freeMemory(pThis->pTemplateReference);
+
+   bzero_item(*pThis);
 }
 
 void glowMatrix_free(GlowMatrix *pThis)
@@ -381,7 +418,10 @@ void glowMatrix_free(GlowMatrix *pThis)
    if(pThis->pSchemaIdentifiers != NULL)
       freeMemory(pThis->pSchemaIdentifiers);
 
-   bzero(*pThis);
+   if(pThis->pTemplateReference != NULL)
+      freeMemory(pThis->pTemplateReference);
+
+   bzero_item(*pThis);
 }
 
 void glowConnection_free(GlowConnection *pThis)
@@ -391,7 +431,7 @@ void glowConnection_free(GlowConnection *pThis)
    if(pThis->pSources != NULL)
       freeMemory(pThis->pSources);
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowFunction_free(GlowFunction *pThis)
@@ -405,6 +445,9 @@ void glowFunction_free(GlowFunction *pThis)
 
    if(pThis->pDescription != NULL)
       freeMemory(pThis->pDescription);
+
+   if(pThis->pTemplateReference != NULL)
+      freeMemory(pThis->pTemplateReference);
 
    if(pThis->pArguments != NULL)
    {
@@ -422,7 +465,7 @@ void glowFunction_free(GlowFunction *pThis)
       freeMemory(pThis->pResult);
    }
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowInvocation_free(GlowInvocation *pThis)
@@ -439,7 +482,7 @@ void glowInvocation_free(GlowInvocation *pThis)
       freeMemory(pThis->pArguments);
    }
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowCommand_free(GlowCommand *pThis)
@@ -449,7 +492,7 @@ void glowCommand_free(GlowCommand *pThis)
    if(pThis->number == GlowCommandType_Invoke)
       glowInvocation_free(&pThis->options.invocation);
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowInvocationResult_free(GlowInvocationResult *pThis)
@@ -466,7 +509,7 @@ void glowInvocationResult_free(GlowInvocationResult *pThis)
       freeMemory(pThis->pResult);
    }
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 void glowTupleItemDescription_free(GlowTupleItemDescription *pThis)
@@ -476,5 +519,5 @@ void glowTupleItemDescription_free(GlowTupleItemDescription *pThis)
    if(pThis->pName != NULL)
       freeMemory(pThis->pName);
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }

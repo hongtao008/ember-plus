@@ -69,7 +69,7 @@ static GlowStreamEntry _streams[STREAMS_COUNT];
 
 static void initializePpmStreams()
 {
-   bzero(_streams);
+   bzero_item(_streams);
 
    _streams[0].streamIdentifier = 0;
    _streams[0].streamValue.flag = GlowParameterType_Integer;
@@ -131,7 +131,7 @@ typedef struct __SampleNode
 
 static void sampleNode_init(SampleNode *pThis, SampleNode *pParent)
 {
-   bzero(*pThis);
+   bzero_item(*pThis);
 
    if(pParent != NULL)
    {
@@ -164,7 +164,7 @@ static void sampleNode_free(SampleNode *pThis)
    else
       glowNode_free(&pThis->node);
 
-   bzero(*pThis);
+   bzero_item(*pThis);
 }
 
 static SampleNode *createNode(SampleNode *pParent, pcstr pIdentifier, pcstr pDescription)
@@ -563,7 +563,7 @@ static void onParameter(const GlowParameter *pParameter, GlowFieldFlags fields, 
    }
 }
 
-static void onPackageReceived(const byte *pPackage, int length, voidptr state)
+static void onOtherPackageReceived(const byte *pPackage, int length, voidptr state)
 {
    ClientInfo *pClientInfo = (ClientInfo *)state;
    byte buffer[16];
@@ -625,12 +625,12 @@ static void handleClient(SOCKET sock)
    // turn off nagle algorithm for ppm data
    setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&noDelay, sizeof(noDelay));
 
-   bzero(client);
+   bzero_item(client);
    client.sock = sock;
 
    // only handle parameters and commands
    glowReader_init(pReader, NULL, onParameter, onCommand, NULL, (voidptr)&client, pRxBuffer, rxBufferSize);
-   pReader->onPackageReceived = onPackageReceived;
+   pReader->onOtherPackageReceived = onOtherPackageReceived;
 
    while(true)
    {

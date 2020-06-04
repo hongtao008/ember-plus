@@ -1,20 +1,9 @@
 ﻿/*
    EmberLib.net -- .NET implementation of the Ember+ Protocol
-   Copyright (C) 2012-2014  L-S-B Broadcast Technologies GmbH
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+   Copyright (C) 2012-2019 Lawo GmbH (http://www.lawo.com).
+   Distributed under the Boost Software License, Version 1.0.
+   (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 */
 
 using BerLib;
@@ -38,8 +27,9 @@ namespace EmberLib.Glow
       /// <summary>
       /// Initializes a new instance of the <see cref="GlowQualifiedTemplate"/> class.
       /// </summary>
-      /// <param name="tag">The tag to assign. For example <see cref="GlowTags.NodeContents.TemplateReference"/>.</param>
       /// <param name="path">The path to assign.</param>
+      /// <param name="tag">The tag to assign. For example <see cref="GlowTags.NodeContents.TemplateReference"/>. If set
+      /// to <c>null</c>, the tag will be set to <see cref="GlowTags.CollectionItem"/>.</param>
       public GlowQualifiedTemplate(int[] path, BerTag? tag)
          : base(tag ?? tag ?? GlowTags.CollectionItem, GlowType.QualifiedTemplate)
       {
@@ -51,7 +41,10 @@ namespace EmberLib.Glow
       /// </summary>
       public int[] Path
       {
-         get { return GetChildValue<int[]>(GlowTags.QualifiedTemplate.Path); }
+         get
+         {
+            return GetChildValue<int[]>(GlowTags.QualifiedTemplate.Path);
+         }
          private set
          {
             var tag = GlowTags.QualifiedTemplate.Path;

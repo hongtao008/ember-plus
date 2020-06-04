@@ -1,82 +1,116 @@
-project(TinyEmberPlus)
 
-if(NOT MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-unused-local-typedefs")
+################################### Metadata ###################################
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+
+
+# Enable sane rpath handling on macOS
+cmake_policy(SET CMP0042 NEW)
+# Allow version in project definition
+cmake_policy(SET CMP0048 NEW)
+# Allow visibility definitions
+cmake_policy(SET CMP0063 NEW)
+# Allow interprocedural optimization
+cmake_policy(SET CMP0069 NEW)
+
+project(TinyEmberPlus VERSION 2.5.0 LANGUAGES CXX)
+
+# Use GNUInstallDirs to make sure libraries are installed into correct locations
+# on all platforms.
+include(GNUInstallDirs)
+
+################################### Options ####################################
+
+
+################################# Main Project #################################
+
+include(cmake/modules/EnableWarnings.cmake)
+
+# <<<  Build  >>>
+
+# If libs101 is not already defined (e.g. because this is the toplevel invocation),
+# look it up via find_package.
+if(NOT TARGET libs101::s101)
+    find_package(libs101 REQUIRED)
 endif()
 
-set(QT_USE_QTGUI TRUE)
-set(QT_USE_QTXML TRUE)
-set(QT_USE_QTNETWORK TRUE)
-SET(CMAKE_AUTOMOC ON)
-SET(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package( Qt4 REQUIRED QtCore QtGui QtNetwork)
-include( ${QT_USE_FILE} )
+# If libformula is not already defined (e.g. because this is the toplevel invocation),
+# look it up via find_package.
+if(NOT TARGET libformula::formula)
+    find_package(libformula REQUIRED)
+endif()
 
-include_directories( ${CMAKE_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR} # generated ui_.h files
-        ../../libember/Headers
-        ../../libformula/Headers
-        ../../libs101/Headers)
 
-file(GLOB HEADER_FILES
-        gadget/*.h
-        gadget/util/*.h
-        glow/*.h
-        glow/util/*.h
-        net/*.h
-        serialization/*.h
-        serialization/detail/*.h
-        util/*.h
-        *.h)
+# Choose whether to link against the static or the shared variant of libember
+# depending on the preference specified by the invocation.
+if (NOT BUILD_SHARED_LIBS)
+    set(LIBEMBER_TARGET libember::ember-static)
+else()
+    set(LIBEMBER_TARGET libember::ember-shared)
+endif()
 
-file(GLOB SOURCE_FILES
-        gadget/*.cpp
-        gadget/util/*.cpp
-        glow/*.cpp
-        glow/util/*.cpp
-        net/*.cpp
-        serialization/*.cpp
-        serialization/detail/*.cpp
-        util/*.cpp
+# If libember is not already defined (e.g. because this is the toplevel invocation),
+# look it up via find_package.
+if(NOT TARGET ${LIBEMBER_TARGET})
+    find_package(libember REQUIRED)
+endif()
+
+
+find_package(Qt5 COMPONENTS Core Gui Widgets Network Xml REQUIRED)
+
+
+file(GLOB_RECURSE SOURCE_FILES
         *.cpp
-        )
-
-set ( GLOB MOC_HEADERS
-        ui_*.h
-        gadget/*.h
-        gadget/util/*.h
-        glow/*.h
-        glow/util/*.h
-        net/*.h
-        serialization/*.h
-        serialization/detail/*.h
-        util/*.h
-        *.h
-        gadget/*.cpp
-        gadget/util/*.cpp
-        glow/*.cpp
-        glow/util/*.cpp
-        net/*.cpp
-        serialization/*.cpp
-        serialization/detail/*.cpp
-        util/*.cpp
-        *.cpp
-        )
-
-set ( GLOB UIS
         *.ui
+        *.qrc
+    )
+
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_compile_features(${PROJECT_NAME}
+        PRIVATE
+            cxx_std_11
+    )
+set_target_properties(${PROJECT_NAME}
+        PROPERTIES
+            AUTOMOC                      ON
+            AUTOUIC                      ON
+            AUTORCC                      ON
+            POSITION_INDEPENDENT_CODE    ON
+            C_EXTENSIONS                 OFF
+            CXX_EXTENSIONS               OFF
+    )
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            Qt5::Core
+            Qt5::Gui
+            Qt5::Widgets
+            Qt5::Network
+            Qt5::Xml
+            libs101::s101
+            libformula::formula
+            ${LIBEMBER_TARGET}
         )
+enable_warnings_on_target(${PROJECT_NAME})
 
-set ( GLOB RESOURCES
-        main.qrc
-        )
 
-QT4_ADD_RESOURCES( RES_SOURCES ${RESOURCES} )
-QT4_WRAP_UI( UI_HEADERS ${UIS} )
-QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS})
+# Add the IPO property for all relevant targets, if we are building in the
+# release configuration and the platform supports it.
+if (NOT CMAKE_BUILD_TYPE MATCHES "Debug")
+    if (NOT DEFINED check_ipo_supported)
+        include(CheckIPOSupported)
+        check_ipo_supported(RESULT ipo_supported)
+    endif()
 
-add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${MOC_HEADERS} ${RES_SOURCES} ${UI_HEADERS})
-target_link_libraries(${PROJECT_NAME} ember_static ${QT_LIBRARIES})
+    if(ipo_supported)
+        set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
+    endif()
+endif()
+
+# <<<  Install  >>>
+
+install(TARGETS ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
